@@ -1,0 +1,36 @@
+{
+  "name": "streamdash",
+  "version": "0.9.0",
+  "description": "Lodash for streams (basic building blocks)",
+  "directories": {
+    "src": "src",
+    "test": "test"
+  },
+  "main": "./dist/src/stream.js",
+  "typings": "./dist/src/stream.d.ts",
+  "scripts": {
+    "test": "rm -rf dist ; tsc && ava ./dist/test/*.js && tslint src/**/*.ts test/**/*.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:forbesmyester/streamdash.git"
+  },
+  "devDependencies": {
+    "@types/node": "^7.0.15",
+    "@types/ramda": "0.0.11",
+    "ava": "^0.19.1",
+    "source-map-support": "^0.4.2",
+    "tslint": "^5.1.0",
+    "typescript": "^2.4.1"
+  },
+  "author": "Matthew Forrester <github.com@speechmarks.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/forbesmyester/streamdash/issues"
+  },
+  "homepage": "https://github.com/forbesmyester/streamdash",
+  "dependencies": {
+    "ramda": "^0.24.1",
+    "stronger-typed-streams": "^0.1.0"
+  }
+}
