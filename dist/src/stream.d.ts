@@ -47,6 +47,16 @@ export declare class CollectorTransform<T> extends Transform<T, T[]> {
     _transform(a: T, encoding: any, cb: any): void;
 }
 /**
+ * When a stream is piped into `FirstDuplex` it will only ever pass through the
+ * very last item outputted by that stream.
+ */
+export declare class FirstDuplex<I> extends Duplex<I, I> {
+    private done;
+    constructor(opts?: {});
+    _write(chunk: I, encoding: any, cb: any): void;
+    _read(n: any): void;
+}
+/**
  * When a stream is piped into `FinalDuplex` it will only ever pass through the
  * very last item outputted by that stream.
  */

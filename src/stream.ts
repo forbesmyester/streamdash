@@ -136,6 +136,33 @@ export class CollectorTransform<T> extends Transform<T, T[]> {
 }
 
 /**
+ * When a stream is piped into `FirstDuplex` it will only ever pass through the
+ * very first item outputted by that stream.
+ */
+export class FirstDuplex<I> extends Duplex<I, I> {
+
+    private done: boolean = false;
+
+    constructor(opts = {}) {
+        super(opts);
+        this.on('finish', () => {
+            this.push(null);
+        });
+    }
+
+    _write(chunk: I, encoding, cb) {
+        if (!this.done) {
+            this.push(chunk);
+        }
+        this.done = true;
+        cb();
+    }
+
+    _read(n) { }
+
+}
+
+/**
  * When a stream is piped into `FinalDuplex` it will only ever pass through the
  * very last item outputted by that stream.
  */

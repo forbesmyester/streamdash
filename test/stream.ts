@@ -1,5 +1,5 @@
 import test from 'ava';
-import { Callback, FinalDuplex, SortDuplex, RightAfterLeft, streamDataCollector, CollectorTransform, ScanTransform, MapTransform, ErrorStream, FilterTransform, ArrayReadable, Transform, Readable, Writable }  from '../src/stream';
+import { Callback, FirstDuplex, FinalDuplex, SortDuplex, RightAfterLeft, streamDataCollector, CollectorTransform, ScanTransform, MapTransform, ErrorStream, FilterTransform, ArrayReadable, Transform, Readable, Writable }  from '../src/stream';
 import { zip, flatten } from 'ramda';
 
 interface Thing { name: string; type: string; }
@@ -275,6 +275,23 @@ test.cb('Can Map', function(tst) {
         tst.end();
     });
 });
+
+test.cb('Can First', function(tst) {
+
+    let src: ArrayReadable<Thing> = new ArrayReadable(getThingNumbers());
+
+    let sort = new FirstDuplex<Thing>({objectMode: true});
+
+    let dst = new Outer<Thing>({objectMode: true});
+
+    src.pipe(sort).pipe(dst);
+
+    dst.on('finish', () => {
+        tst.deepEqual(dst.get(), [{ name: "1", type: "Number" }]);
+        tst.end();
+    });
+});
+
 
 test.cb('Can Final', function(tst) {
 
