@@ -345,14 +345,14 @@ test('RightAfterLeft extends Joiner', function(tst) {
     interface MJRight { n: number; dir: 'right'; }
     interface MJAdd { n: number; }
 
-    let mapper = (leftValues: (MJLeft)[], rightValue: MJRight): MJAdd|null => {
+    let mapper = (leftValues: (MJLeft)[], rightValue: MJRight): MJAdd[] => {
         let leftVal = leftValues
             .reduce((acc, lv: MJLeft) => { return acc + lv.n; }, 0);
 
         let v = rightValue.n + leftVal;
-        if (v == 10) { return null; }
+        if (v == 10) { return []; }
 
-        return {n: v};
+        return [{n: v}];
     };
 
     let leftSrc = new ArrayReadable([

@@ -480,12 +480,12 @@ export abstract class Joiner<L, R, O> extends Readable<O> {
 }
 
 /**
- * Map function for `RightAfterLeft` which receives all left values (of type `L`)
- * as well as some values from the right (of type `R`). It should return values
- * of type `O` which are the result of joining `L`'s to `R`'s.
+ * Map function for `RightAfterLeft` wich can be called multiple times receives
+ * all left values (of type `L`) as well as some values from the right (of type
+ * `R`).  It should return `O[]` which are the result of joining `L`'s to `R`'s.
  */
 export interface RightAfterLeftMapFunc<L, R, O> {
-    (ls: L[], rs: R): O|null;
+    (ls: L[], rs: R): O[];
 }
 
 /**
@@ -512,10 +512,12 @@ export class RightAfterLeft<L, R, O> extends Joiner<L, R, O> {
 
         let rightValuesToMap = rightValues.filter(r => r !== null);
         let done = rightValues.length != rightValuesToMap.length;
-        let vals: (O|null)[] = filter(
+
+        let vals: (O|null)[] = Array.prototype.concat.apply([], filter(
             o => o !== null,
             map(myMapper, rightValuesToMap)
-        );
+        ));
+
         if (done) {
             vals = vals.concat([null]);
         }

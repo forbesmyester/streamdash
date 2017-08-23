@@ -48,7 +48,7 @@ export declare class CollectorTransform<T> extends Transform<T, T[]> {
 }
 /**
  * When a stream is piped into `FirstDuplex` it will only ever pass through the
- * very last item outputted by that stream.
+ * very first item outputted by that stream.
  */
 export declare class FirstDuplex<I> extends Duplex<I, I> {
     private done;
@@ -172,12 +172,12 @@ export declare abstract class Joiner<L, R, O> extends Readable<O> {
     _read(n: any): void;
 }
 /**
- * Map function for `RightAfterLeft` which receives all left values (of type `L`)
- * as well as some values from the right (of type `R`). It should return values
- * of type `O` which are the result of joining `L`'s to `R`'s.
+ * Map function for `RightAfterLeft` wich can be called multiple times receives
+ * all left values (of type `L`) as well as some values from the right (of type
+ * `R`).  It should return `O[]` which are the result of joining `L`'s to `R`'s.
  */
 export interface RightAfterLeftMapFunc<L, R, O> {
-    (ls: L[], rs: R): O | null;
+    (ls: L[], rs: R): O[];
 }
 /**
  * An simpler implementation of `Joiner` which will keep all items from the left
