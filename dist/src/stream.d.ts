@@ -136,11 +136,25 @@ export declare class FilterTransform<T> extends Transform<T, T> {
     _transform(a: T, encoding: any, cb: any): void;
 }
 /**
+ * Joins multiple steams into one. It is expected that all input streams will be
+ * of the same type.
+ */
+export declare class ParallelJoin<T> extends Readable<T> {
+    inputs: Writable<T>[];
+    constructor(opts?: {
+        [k: string]: any;
+    });
+    _read(n: any): void;
+    add(opts?: {
+        [k: string]: any;
+    }): Writable<T>;
+}
+/**
  * Given a left stream outputting `L` and right stream outputting `R`, as well
  * as some logic to combine them (in `onData()`) this class will produce output
  * of type `O`.
  */
-export declare abstract class Joiner<L, R, O> extends Readable<O> {
+export declare abstract class AbstractLeftRightJoiner<L, R, O> extends Readable<O> {
     private leftBuffer;
     private rightBuffer;
     private done;
@@ -184,7 +198,7 @@ export interface RightAfterLeftMapFunc<L, R, O> {
  * until that stream is finished and then (using `RightAfterLeftMapFunc`) allow
  * mapping/joining of all right values with all left values.
  */
-export declare class RightAfterLeft<L, R, O> extends Joiner<L, R, O> {
+export declare class RightAfterLeft<L, R, O> extends AbstractLeftRightJoiner<L, R, O> {
     private mapper;
     constructor(mapper: RightAfterLeftMapFunc<L, R, O>, opts?: {});
     onData(leftValues: (L | null)[], rightValues: (R | null)[]): {

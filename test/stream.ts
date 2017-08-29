@@ -1,5 +1,5 @@
 import test from 'ava';
-import { Callback, FirstDuplex, FinalDuplex, SortDuplex, RightAfterLeft, streamDataCollector, CollectorTransform, ScanTransform, MapTransform, ErrorStream, FilterTransform, ArrayReadable, Transform, Readable, Writable }  from '../src/stream';
+import { ParallelJoin, Callback, FirstDuplex, FinalDuplex, SortDuplex, RightAfterLeft, streamDataCollector, CollectorTransform, ScanTransform, MapTransform, ErrorStream, FilterTransform, ArrayReadable, Transform, Readable, Writable }  from '../src/stream';
 import { zip, flatten } from 'ramda';
 
 interface Thing { name: string; type: string; }
@@ -338,6 +338,47 @@ test.cb('Can Sort', function(tst) {
 });
 
 
+
+test('ParallelJoin extends Joiner', function(tst) {
+
+    let leftSrc = new ArrayReadable([
+            {n: 1, dir: 'left'},
+            {n: 2, dir: 'left'},
+            {n: 3, dir: 'left'}
+        ]),
+        rightSrc = new ArrayReadable([
+            {n: 5, dir: 'right'},
+            {n: 4, dir: 'right'},
+            {n: 3, dir: 'right'}
+        ]);
+
+    let pj = new ParallelJoin({objectMode: true});
+    leftSrc.pipe(pj.add({objectMode: true}));
+    rightSrc.pipe(pj.add({objectMode: true}));
+
+
+    return streamDataCollector(pj)
+        .then((adds) => {
+            tst.is(adds.length, 6);
+            tst.deepEqual(
+                adds.sort(({n: n1}, {n: n2}) => {
+                    return n1 - n2;
+                }),
+                [
+                    {n: 1, dir: 'left'},
+                    {n: 2, dir: 'left'},
+                    {n: 3, dir: 'left'},
+                    {n: 3, dir: 'right'},
+                    {n: 4, dir: 'right'},
+                    {n: 5, dir: 'right'}
+                ]
+            );
+        })
+        .catch((e) => {
+            throw e;
+        });
+
+});
 
 test('RightAfterLeft extends Joiner', function(tst) {
 

@@ -196,6 +196,7 @@ export interface SortDuplexCompareFunc<I> {
     (a: I, b: I): number;
 }
 
+
 /**
  * Will sort the data piped into it using a supplied `SortDuplexCompareFunc`
  */
@@ -368,6 +369,56 @@ export class FilterTransform<T> extends Transform<T, T> {
 
 }
 
+/**
+ * Joins multiple steams into one. It is expected that all input streams will be
+ * of the same type.
+ */
+export class ParallelJoin<T> extends Readable<T> {
+
+    public inputs: Writable<T>[] = [];
+
+    constructor(opts: {[k: string]: any} = {}) {
+
+        super(Object.assign(
+            {},
+            opts,
+        ));
+
+    }
+
+    public _read(n) {}
+
+    add(opts: {[k: string]: any} = {}) {
+
+        let input: Writable<T> = new JoinerWritable<T>(
+            (o, e) => {
+                this.push(o, e);
+            },
+            opts
+        );
+
+        input.on('finish', () => {
+            this.inputs = this.inputs.filter(
+                (i) => {
+                    return i !== input;
+                }
+            );
+            if (this.inputs.length === 0) {
+                this.push(null);
+            }
+        });
+
+        input.on('data', (o: T) => {
+        });
+
+        this.inputs.push(input);
+
+        return input;
+    }
+
+}
+
+
 class JoinerWritable<T> extends Writable<T> {
     constructor(private onWrite: (chunk, encoding) => void, opts) {
         super(opts);
@@ -383,7 +434,7 @@ class JoinerWritable<T> extends Writable<T> {
  * as some logic to combine them (in `onData()`) this class will produce output
  * of type `O`.
  */
-export abstract class Joiner<L, R, O> extends Readable<O> {
+export abstract class AbstractLeftRightJoiner<L, R, O> extends Readable<O> {
 
     private leftBuffer: (L|null)[] = [];
     private rightBuffer: (R|null)[] = [];
@@ -493,7 +544,7 @@ export interface RightAfterLeftMapFunc<L, R, O> {
  * until that stream is finished and then (using `RightAfterLeftMapFunc`) allow
  * mapping/joining of all right values with all left values.
  */
-export class RightAfterLeft<L, R, O> extends Joiner<L, R, O> {
+export class RightAfterLeft<L, R, O> extends AbstractLeftRightJoiner<L, R, O> {
 
     constructor(private mapper: RightAfterLeftMapFunc<L, R, O>, opts = {}) {
         super(opts);
@@ -530,6 +581,7 @@ export class RightAfterLeft<L, R, O> extends Joiner<L, R, O> {
     }
 
 }
+
 
 /**
  * Definition for standard callback
