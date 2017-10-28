@@ -91,6 +91,12 @@ export interface MapFunc<I, O> {
     (a: I, next: (e: null | undefined | Error, b?: O) => void): void;
 }
 /**
+ * Given a stream of type `T[]` is broken up into a stream of T.
+ */
+export declare class FlattenTransform<T> extends Transform<T[], T> {
+    _transform(ts: T[], encoding: any, cb: any): void;
+}
+/**
  * Given a stream of type `I` is piped in and a function that maps `I` to `O`. This
  * will output a stream of type `O`.
  */
