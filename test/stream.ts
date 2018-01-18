@@ -1,5 +1,5 @@
 import test from 'ava';
-import { _bufferArrayToLastMarkerArray, ParallelJoin, Callback, FirstDuplex, FinalDuplex, SortDuplex, RightAfterLeft, streamDataCollector, CollectorTransform, ScanTransform, MapTransform, ErrorStream, FilterTransform, ArrayReadable, Transform, Readable, Writable }  from '../src/stream';
+import { _bufferArrayToLastMarkerArray, FlattenTransform, ParallelJoin, Callback, FirstDuplex, FinalDuplex, SortDuplex, RightAfterLeft, streamDataCollector, CollectorTransform, ScanTransform, MapTransform, ErrorStream, FilterTransform, ArrayReadable, Transform, Readable, Writable }  from '../src/stream';
 import { zip, flatten } from 'ramda';
 
 interface Thing { name: string; type: string; }
@@ -248,6 +248,37 @@ test.cb('Can Scan', function(tst) {
         tst.end();
     });
 });
+
+
+test('Can Flatten', function(tst) {
+
+    let src: ArrayReadable<Thing[]> = new ArrayReadable([getThingLetters(), getThingNumbers()]);
+    let flatten = new FlattenTransform<Thing>({objectMode: true});
+    src.pipe(flatten);
+
+    return streamDataCollector<Thing>(flatten)
+        .then((result) => {
+            tst.deepEqual(
+                result,
+                [
+                    { name: "A", type: "Letter" },
+                    { name: "B", type: "Letter" },
+                    { name: "C", type: "Letter" },
+                    { name: "D", type: "Letter" },
+                    { name: "E", type: "Letter" },
+                    { name: "1", type: "Number" },
+                    { name: "2", type: "Number" },
+                    { name: "3", type: "Number" },
+                    { name: "4", type: "Number" },
+                    { name: "5", type: "Number" }
+                ]
+            );
+        })
+        .catch((e) => {
+            throw e;
+        });
+});
+
 
 test.cb('Can Map', function(tst) {
 

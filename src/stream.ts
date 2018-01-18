@@ -249,6 +249,20 @@ export interface MapFunc<I, O> {
 }
 
 /**
+ * Given a stream of type `T[]` is broken up into a stream of T.
+ */
+export class FlattenTransform<T> extends Transform<T[], T> {
+
+    _transform(ts: T[], encoding, cb) {
+        for (let t of ts) {
+            this.push(t);
+        }
+        cb();
+    }
+
+}
+
+/**
  * Given a stream of type `I` is piped in and a function that maps `I` to `O`. This
  * will output a stream of type `O`.
  */
