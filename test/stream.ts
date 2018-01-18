@@ -1,5 +1,5 @@
 import test from 'ava';
-import { ParallelJoin, Callback, FirstDuplex, FinalDuplex, SortDuplex, RightAfterLeft, streamDataCollector, CollectorTransform, ScanTransform, MapTransform, ErrorStream, FilterTransform, ArrayReadable, Transform, Readable, Writable }  from '../src/stream';
+import { _bufferArrayToLastMarkerArray, ParallelJoin, Callback, FirstDuplex, FinalDuplex, SortDuplex, RightAfterLeft, streamDataCollector, CollectorTransform, ScanTransform, MapTransform, ErrorStream, FilterTransform, ArrayReadable, Transform, Readable, Writable }  from '../src/stream';
 import { zip, flatten } from 'ramda';
 
 interface Thing { name: string; type: string; }
@@ -386,12 +386,14 @@ test('RightAfterLeft extends Joiner', function(tst) {
     interface MJRight { n: number; dir: 'right'; }
     interface MJAdd { n: number; }
 
-    let mapper = (leftValues: (MJLeft)[], rightValue: MJRight): MJAdd[] => {
+    let mapper = (leftValues: MJLeft[], rightValue: MJRight, done: boolean): MJAdd[] => {
         let leftVal = leftValues
             .reduce((acc, lv: MJLeft) => { return acc + lv.n; }, 0);
 
         let v = rightValue.n + leftVal;
         if (v == 10) { return []; }
+
+        if (done) { v = v + 0.5; }
 
         return [{n: v}];
     };
@@ -413,7 +415,7 @@ test('RightAfterLeft extends Joiner', function(tst) {
 
     return streamDataCollector<MJAdd>(joiner)
         .then((adds) => {
-            tst.deepEqual(adds, [{n: 11}, {n: 9}]);
+            tst.deepEqual(adds, [{n: 11}, {n: 9.5}]);
             tst.is(joiner['rightBuffer'].length, 0);
             tst.is(joiner['leftBuffer'].length, 0);
         })
@@ -423,3 +425,18 @@ test('RightAfterLeft extends Joiner', function(tst) {
 
 });
 
+test('_bufferArrayToLastMarkerArray', function(tst) {
+    let a = _bufferArrayToLastMarkerArray<number>();
+    tst.deepEqual([], a([1, 2]));
+    tst.deepEqual([[1, false], [2, false]], a([3]));
+    tst.deepEqual([[3, true]], a([null]));
+    tst.deepEqual([], a([]));
+    tst.deepEqual([], a([]));
+
+    let b = _bufferArrayToLastMarkerArray<number>();
+    tst.deepEqual([], b([1, 2]));
+    tst.deepEqual([[1, false], [2, false]], b([3]));
+    tst.deepEqual([[3, false], [4, false], [5, true]], b([4, 5, null]));
+    tst.deepEqual([], b([]));
+    tst.deepEqual([], b([]));
+});

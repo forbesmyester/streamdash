@@ -536,7 +536,7 @@ export abstract class AbstractLeftRightJoiner<L, R, O> extends Readable<O> {
  * `R`).  It should return `O[]` which are the result of joining `L`'s to `R`'s.
  */
 export interface RightAfterLeftMapFunc<L, R, O> {
-    (ls: L[], rs: R): O[];
+    (ls: L[], rs: R, done?: boolean): O[];
 }
 
 /**
@@ -546,8 +546,11 @@ export interface RightAfterLeftMapFunc<L, R, O> {
  */
 export class RightAfterLeft<L, R, O> extends AbstractLeftRightJoiner<L, R, O> {
 
+    private buffer;
+
     constructor(private mapper: RightAfterLeftMapFunc<L, R, O>, opts = {}) {
         super(opts);
+        this.buffer = _bufferArrayToLastMarkerArray();
     }
 
     onData(leftValues: (L|null)[], rightValues: (R|null)[]) {
@@ -559,14 +562,25 @@ export class RightAfterLeft<L, R, O> extends AbstractLeftRightJoiner<L, R, O> {
             };
         }
 
-        let myMapper = this.mapper.bind(this, leftValues.filter(l => l !== null));
-
         let rightValuesToMap = rightValues.filter(r => r !== null);
         let done = rightValues.length != rightValuesToMap.length;
 
+        let myMapper = (right: [R, boolean]) => {
+            let m = this.mapper.bind(
+                this,
+                leftValues.filter(l => l !== null),
+                right[0],
+                right[1]
+            );
+            return m();
+        };
+
         let vals: (O|null)[] = Array.prototype.concat.apply([], filter(
             o => o !== null,
-            map(myMapper, rightValuesToMap)
+            map(
+                myMapper,
+                this.buffer(rightValues)
+            )
         ));
 
         if (done) {
@@ -582,6 +596,32 @@ export class RightAfterLeft<L, R, O> extends AbstractLeftRightJoiner<L, R, O> {
 
 }
 
+export function _bufferArrayToLastMarkerArray<I>() {
+    let done = false;
+    let grp: I[] = [];
+
+    function mapper(g: I): [I, boolean] {
+        return [g, false];
+    }
+
+    return function(ii: (I|null)[]): [I, boolean][] {
+
+        if (done) { return []; }
+        let r: [I, boolean][] = grp.map(mapper);
+        if (ii.indexOf(null) > -1) {
+            r = r.concat(
+                ii.filter(z => z !== null).map(mapper)
+            );
+            r[r.length - 1][1] = true;
+            done = true;
+            return r;
+        }
+
+        grp = <I[]>ii.filter(z => z !== null);
+        return r;
+
+    };
+}
 
 /**
  * Definition for standard callback

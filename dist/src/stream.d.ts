@@ -191,7 +191,7 @@ export declare abstract class AbstractLeftRightJoiner<L, R, O> extends Readable<
  * `R`).  It should return `O[]` which are the result of joining `L`'s to `R`'s.
  */
 export interface RightAfterLeftMapFunc<L, R, O> {
-    (ls: L[], rs: R): O[];
+    (ls: L[], rs: R, done?: boolean): O[];
 }
 /**
  * An simpler implementation of `Joiner` which will keep all items from the left
@@ -200,6 +200,7 @@ export interface RightAfterLeftMapFunc<L, R, O> {
  */
 export declare class RightAfterLeft<L, R, O> extends AbstractLeftRightJoiner<L, R, O> {
     private mapper;
+    private buffer;
     constructor(mapper: RightAfterLeftMapFunc<L, R, O>, opts?: {});
     onData(leftValues: (L | null)[], rightValues: (R | null)[]): {
         deadIndicesLeft: number[];
@@ -207,6 +208,7 @@ export declare class RightAfterLeft<L, R, O> extends AbstractLeftRightJoiner<L, 
         toPush: (O | null)[];
     };
 }
+export declare function _bufferArrayToLastMarkerArray<I>(): (ii: (I | null)[]) => [I, boolean][];
 /**
  * Definition for standard callback
  */
