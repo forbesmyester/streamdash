@@ -561,6 +561,7 @@ export interface RightAfterLeftMapFunc<L, R, O> {
 export class RightAfterLeft<L, R, O> extends AbstractLeftRightJoiner<L, R, O> {
 
     private buffer;
+    private hasLength = false;
 
     constructor(private mapper: RightAfterLeftMapFunc<L, R, O>, opts = {}) {
         super(opts);
@@ -575,6 +576,15 @@ export class RightAfterLeft<L, R, O> extends AbstractLeftRightJoiner<L, R, O> {
                 toPush: []
             };
         }
+
+        if (!this.hasLength && rightValues.length && rightValues[0] === null) {
+            return {
+                deadIndicesLeft: leftValues.map((_, i) => i),
+                deadIndicesRight: rightValues.map((_, i) => i),
+                toPush: [null]
+            };
+        }
+        this.hasLength = true;
 
         let rightValuesToMap = rightValues.filter(r => r !== null);
         let done = rightValues.length != rightValuesToMap.length;

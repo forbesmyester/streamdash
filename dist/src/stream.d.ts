@@ -207,6 +207,7 @@ export interface RightAfterLeftMapFunc<L, R, O> {
 export declare class RightAfterLeft<L, R, O> extends AbstractLeftRightJoiner<L, R, O> {
     private mapper;
     private buffer;
+    private hasLength;
     constructor(mapper: RightAfterLeftMapFunc<L, R, O>, opts?: {});
     onData(leftValues: (L | null)[], rightValues: (R | null)[]): {
         deadIndicesLeft: number[];

@@ -411,6 +411,49 @@ test('ParallelJoin extends Joiner', function(tst) {
 
 });
 
+test('RightAfterLeft extends Joiner (zero lemgth)', function(tst) {
+
+    interface MJLeft { n: number; dir: 'left'; }
+    interface MJRight { n: number; dir: 'right'; }
+    interface MJAdd { n: number; }
+
+    let mapper = (leftValues: MJLeft[], rightValue: MJRight, done: boolean): MJAdd[] => {
+        let leftVal = leftValues
+            .reduce((acc, lv: MJLeft) => { return acc + lv.n; }, 0);
+
+        let v = rightValue.n + leftVal;
+        if (v == 10) { return []; }
+
+        if (done) { v = v + 0.5; }
+
+        return [{n: v}];
+    };
+
+    let leftSrc = new ArrayReadable([
+            {n: 1, dir: 'left'},
+            {n: 2, dir: 'left'},
+            {n: 3, dir: 'left'}
+        ]),
+        rightSrc = new ArrayReadable([
+        ]),
+        joiner = new RightAfterLeft(mapper);
+
+    leftSrc.pipe(joiner.left);
+    rightSrc.pipe(joiner.right);
+
+    return streamDataCollector<MJAdd>(joiner)
+        .then((adds) => {
+            tst.deepEqual(adds, []);
+            tst.is(joiner['rightBuffer'].length, 0);
+            tst.is(joiner['leftBuffer'].length, 0);
+        })
+        .catch((e) => {
+            throw e;
+        });
+
+});
+
+
 test('RightAfterLeft extends Joiner', function(tst) {
 
     interface MJLeft { n: number; dir: 'left'; }
