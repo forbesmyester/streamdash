@@ -454,7 +454,7 @@ test('RightAfterLeft extends Joiner (zero lemgth)', function(tst) {
 });
 
 
-test('RightAfterLeft extends Joiner', function(tst) {
+test('RightAfterLeft extends Joiner (with right)', function(tst) {
 
     interface MJLeft { n: number; dir: 'left'; }
     interface MJRight { n: number; dir: 'right'; }
@@ -499,6 +499,43 @@ test('RightAfterLeft extends Joiner', function(tst) {
 
 });
 
+test('RightAfterLeft extends Joiner without right', function(tst) {
+
+    interface MJLeft { n: number; dir: 'left'; }
+    interface MJRight { n: number; dir: 'right'; }
+    interface MJAdd { n: number; }
+
+    let mapper = (leftValues: MJLeft[], rightValue: MJRight, done: boolean): MJAdd[] => {
+        let leftVal = leftValues
+            .reduce((acc, lv: MJLeft) => { return acc + lv.n; }, 0);
+
+        let v = rightValue.n + leftVal;
+        if (v == 10) { return []; }
+
+        if (done) { v = v + 0.5; }
+
+        return [{n: v}];
+    };
+
+    let leftSrc: (MJLeft|null)[] = [
+            {n: 1, dir: 'left'},
+            {n: 2, dir: 'left'},
+            {n: 3, dir: 'left'},
+            null
+        ],
+        joiner = new RightAfterLeft(mapper);
+
+    joiner.onData(leftSrc, []);
+    joiner.onData(leftSrc, []);
+    joiner.onData(leftSrc, []);
+    joiner.onData(leftSrc, []);
+    joiner.onData(leftSrc, []);
+    tst.notThrows(function() {
+    joiner.onData(leftSrc, [null]);
+    });
+
+});
+
 test('_bufferArrayToLastMarkerArray', function(tst) {
     let a = _bufferArrayToLastMarkerArray<number>();
     tst.deepEqual([], a([1, 2]));
@@ -513,4 +550,10 @@ test('_bufferArrayToLastMarkerArray', function(tst) {
     tst.deepEqual([[3, false], [4, false], [5, true]], b([4, 5, null]));
     tst.deepEqual([], b([]));
     tst.deepEqual([], b([]));
+
+    let c = _bufferArrayToLastMarkerArray<number>();
+    tst.throws(function() {
+        c([null]);
+    });
+
 });

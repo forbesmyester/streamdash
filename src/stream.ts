@@ -599,13 +599,20 @@ export class RightAfterLeft<L, R, O> extends AbstractLeftRightJoiner<L, R, O> {
             return m();
         };
 
-        let vals: (O|null)[] = Array.prototype.concat.apply([], filter(
-            o => o !== null,
-            map(
-                myMapper,
-                this.buffer(rightValues)
-            )
-        ));
+        let vals: (O|null)[] = [];
+        try {
+             vals = Array.prototype.concat.apply([], filter(
+                o => o !== null,
+                map(
+                    myMapper,
+                    this.buffer(rightValues)
+                )
+            ));
+        } catch (e) {
+            if (!(e instanceof BufferArrayToLastMarkerDeadEnd)) {
+                throw e;
+            }
+        }
 
         if (done) {
             vals = vals.concat([null]);
@@ -619,6 +626,8 @@ export class RightAfterLeft<L, R, O> extends AbstractLeftRightJoiner<L, R, O> {
     }
 
 }
+
+export class BufferArrayToLastMarkerDeadEnd extends Error {}
 
 export function _bufferArrayToLastMarkerArray<I>() {
     let done = false;
@@ -636,6 +645,9 @@ export function _bufferArrayToLastMarkerArray<I>() {
             r = r.concat(
                 ii.filter(z => z !== null).map(mapper)
             );
+            if (r.length == 0) {
+                throw new BufferArrayToLastMarkerDeadEnd('No end for marker');
+            }
             r[r.length - 1][1] = true;
             done = true;
             return r;

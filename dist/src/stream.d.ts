@@ -215,6 +215,8 @@ export declare class RightAfterLeft<L, R, O> extends AbstractLeftRightJoiner<L, 
         toPush: (O | null)[];
     };
 }
+export declare class BufferArrayToLastMarkerDeadEnd extends Error {
+}
 export declare function _bufferArrayToLastMarkerArray<I>(): (ii: (I | null)[]) => [I, boolean][];
 /**
  * Definition for standard callback
