@@ -1,5 +1,5 @@
 import test from 'ava';
-import { _bufferArrayToLastMarkerArray, FlattenTransform, ParallelJoin, Callback, FirstDuplex, FinalDuplex, SortDuplex, RightAfterLeft, streamDataCollector, CollectorTransform, ScanTransform, MapTransform, ErrorStream, FilterTransform, ArrayReadable, Transform, Readable, Writable }  from '../src/stream';
+import { split, _bufferArrayToLastMarkerArray, FlattenTransform, ParallelJoin, Callback, FirstDuplex, FinalDuplex, SortDuplex, RightAfterLeft, streamDataCollector, CollectorTransform, ScanTransform, MapTransform, ErrorStream, FilterTransform, ArrayReadable, Transform, Readable, Writable }  from '../src/stream';
 import { zip, flatten } from 'ramda';
 
 interface Thing { name: string; type: string; }
@@ -249,6 +249,34 @@ test.cb('Can Scan', function(tst) {
     });
 });
 
+test('Can Split', function(tst) {
+
+    let src: ArrayReadable<Thing> = new ArrayReadable(getThingLetters());
+    let splits = split<Thing>(3, src);
+
+    let expected = [
+        { name: "A", type: "Letter" },
+        { name: "B", type: "Letter" },
+        { name: "C", type: "Letter" },
+        { name: "D", type: "Letter" },
+        { name: "E", type: "Letter" }
+    ];
+
+    let p1 = streamDataCollector<Thing>(splits[0])
+        .then((result) => { tst.deepEqual(result, expected); })
+        .catch((e) => { throw e; });
+
+    let p2 = streamDataCollector<Thing>(splits[1])
+        .then((result) => { tst.deepEqual(result, expected); })
+        .catch((e) => { throw e; });
+
+    let p3 = streamDataCollector<Thing>(splits[2])
+        .then((result) => { tst.deepEqual(result, expected); })
+        .catch((e) => { throw e; });
+
+    return Promise.all([p1, p2, p3]);
+});
+
 
 test('Can Flatten', function(tst) {
 
@@ -410,6 +438,8 @@ test('ParallelJoin extends Joiner', function(tst) {
         });
 
 });
+
+
 
 test('RightAfterLeft extends Joiner (zero lemgth)', function(tst) {
 
