@@ -669,7 +669,7 @@ export interface Callback<R> {
 
 
 export class NewSource<A> extends Readable<A> {
-    constructor() { super({objectMode: true}); }
+    constructor(opts) { super(Object.assign({objectMode: true}, opts)); }
     _read(count) {}
     _push(d: A) {
         this.push(d);
@@ -677,11 +677,11 @@ export class NewSource<A> extends Readable<A> {
     _emit(m, e) { this.emit(m, e); }
 }
 
-export function split<A>(count: number, src: Readable<A>): Readable<A>[] {
+export function split<A>(count: number, src: Readable<A>, opts = {}): Readable<A>[] {
     let r: Readable<A>[] = [];
     for (let i = 0; i < count; i++) {
         let resolved = false;
-        let dst: NewSource<A> = new NewSource<A>();
+        let dst: NewSource<A> = new NewSource<A>(opts);
         src.on('data', (d: A) => {
             if (resolved) { return; }
             if (d === null) { resolved = true; }

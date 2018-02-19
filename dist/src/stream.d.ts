@@ -225,9 +225,9 @@ export interface Callback<R> {
     (e: Error | null | undefined, r?: R): void;
 }
 export declare class NewSource<A> extends Readable<A> {
-    constructor();
+    constructor(opts: any);
     _read(count: any): void;
     _push(d: A): void;
     _emit(m: any, e: any): void;
 }
-export declare function split<A>(count: number, src: Readable<A>): Readable<A>[];
+export declare function split<A>(count: number, src: Readable<A>, opts?: {}): Readable<A>[];
