@@ -411,7 +411,48 @@ test('ParallelJoin extends Joiner', function(tst) {
 
 });
 
-test('RightAfterLeft extends Joiner (zero lemgth)', function(tst) {
+test('RightAfterLeft extends Joiner (zero right)', function(tst) {
+
+    interface MJLeft { n: number; dir: 'left'; }
+    interface MJRight { n: number; dir: 'right'; }
+    interface MJAdd { n: number; }
+
+    let mapper = (leftValues: MJLeft[], rightValue: MJRight, done: boolean): MJAdd[] => {
+        let leftVal = leftValues
+            .reduce((acc, lv: MJLeft) => { return acc + lv.n; }, 0);
+
+        let v = rightValue.n + leftVal;
+        if (v == 10) { return []; }
+
+        if (done) { v = v + 0.5; }
+
+        return [{n: v}];
+    };
+
+    let leftSrc = new ArrayReadable([
+        ]),
+        rightSrc = new ArrayReadable([
+            {n: 1, dir: 'right'},
+        ]),
+        joiner = new RightAfterLeft(mapper);
+
+    leftSrc.pipe(joiner.left);
+    rightSrc.pipe(joiner.right);
+
+    return streamDataCollector<MJAdd>(joiner)
+        .then((adds) => {
+            tst.deepEqual(adds, [{ n: 1.5 }]);
+            tst.is(joiner['rightBuffer'].length, 0);
+            tst.is(joiner['leftBuffer'].length, 0);
+        })
+        .catch((e) => {
+            throw e;
+        });
+
+});
+
+
+test('RightAfterLeft extends Joiner (zero left)', function(tst) {
 
     interface MJLeft { n: number; dir: 'left'; }
     interface MJRight { n: number; dir: 'right'; }
@@ -513,4 +554,14 @@ test('_bufferArrayToLastMarkerArray', function(tst) {
     tst.deepEqual([[3, false], [4, false], [5, true]], b([4, 5, null]));
     tst.deepEqual([], b([]));
     tst.deepEqual([], b([]));
+
+    let c = _bufferArrayToLastMarkerArray<number>();
+    tst.deepEqual([], c([1, 2]));
+    tst.deepEqual([[1, false], [2, false]], c([3]));
+    tst.deepEqual([], c([]));
+    tst.deepEqual([], c([]));
+    tst.deepEqual([[3, true]], c([null]));
+    tst.deepEqual([], c([]));
+    tst.deepEqual([], c([]));
+
 });

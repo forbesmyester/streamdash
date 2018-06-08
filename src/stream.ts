@@ -631,11 +631,15 @@ export function _bufferArrayToLastMarkerArray<I>() {
     return function(ii: (I|null)[]): [I, boolean][] {
 
         if (done) { return []; }
+        if (ii.length == 0) { return []; }
         let r: [I, boolean][] = grp.map(mapper);
         if (ii.indexOf(null) > -1) {
             r = r.concat(
                 ii.filter(z => z !== null).map(mapper)
             );
+            if (r.length == 0) {
+                throw new Error("Cannot mark last as already processed");
+            }
             r[r.length - 1][1] = true;
             done = true;
             return r;
